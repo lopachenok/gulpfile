@@ -1,0 +1,103 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+}
+
+.header--arrow-down,
+.header--cross,
+.menu,
+.header--envelope,
+.header--handle,
+.menu--keys,
+.menu--location,
+.menu--location-map {
+  background: url("../img/sprite.svg") no-repeat;
+}
+
+.header--arrow-down {
+  background-position: 0 0;
+  width: 10px;
+  height: 5px;
+}
+
+.header--cross,
+.menu {
+  background-position: 0 0.9527439024390245%;
+  width: 9.2px;
+  height: 9.2px;
+}
+
+.header--envelope {
+  background-position: 0 3.1645569620253164%;
+  width: 93.5px;
+  height: 60px;
+}
+
+.header--handle {
+  background-position: 0 19.726459758022095%;
+  width: 109.7px;
+  height: 153.8px;
+}
+
+.menu--keys {
+  background-position: 0 59.96334118879288%;
+  width: 150.8px;
+  height: 152.1px;
+}
+
+.menu--location {
+  background-position: 0 85.24882838652086%;
+  width: 55px;
+  height: 85.9px;
+}
+
+.menu--location-map {
+  background-position: 0 99.9786370433668%;
+  width: 25px;
+  height: 65.9px;
+}
+
+.header {
+  width: 100px;
+  margin: 0 auto;
+  background: url("../img/bc.png");
+}
+
+.menu__list {
+  height: 50px;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.menu__item {
+  border: 1px solid #000;
+  color: #000;
+  background: #000;
+}
+/*# sourceMappingURL=style.min.css.map */

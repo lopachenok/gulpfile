@@ -1,0 +1,53 @@
+%svg-common {
+	background: url("sprite.svg") no-repeat;
+}
+
+.header--arrow-down {
+	@extend %svg-common;
+	background-position: 0 0;
+	width: 10px;
+	height: 5px;
+}
+
+.header--cross {
+	@extend %svg-common;
+	background-position: 0 0.9527439024390245%;
+	width: 9.2px;
+	height: 9.2px;
+}
+
+.header--envelope {
+	@extend %svg-common;
+	background-position: 0 3.1645569620253164%;
+	width: 93.5px;
+	height: 60px;
+}
+
+.header--handle {
+	@extend %svg-common;
+	background-position: 0 19.726459758022095%;
+	width: 109.7px;
+	height: 153.8px;
+}
+
+.menu--keys {
+	@extend %svg-common;
+	background-position: 0 59.96334118879288%;
+	width: 150.8px;
+	height: 152.1px;
+}
+
+.menu--location {
+	@extend %svg-common;
+	background-position: 0 85.24882838652086%;
+	width: 55px;
+	height: 85.9px;
+}
+
+.menu--location-map {
+	@extend %svg-common;
+	background-position: 0 99.9786370433668%;
+	width: 25px;
+	height: 65.9px;
+}
+
