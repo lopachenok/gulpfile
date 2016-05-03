@@ -1,0 +1,35 @@
+.main-menu{
+    
+  &__list{
+    
+  }
+  
+  &__item{
+    display: inline-block;
+    color: #ffffff;
+    font: 700 16px / 36px 'Dosis';
+    text-transform: uppercase;
+    margin-left: 40px;
+    position: relative;
+    
+    &:not(:last-child):before{
+      content: '';
+      position: absolute;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      height: 12px;
+      width: 12px;
+      right: -30px;
+      top: 9px;
+    }
+    
+    &:not(:last-child):after{
+      content: '';
+      position: absolute;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      right: -24px;
+      top: 15px;
+    }
+  }
+}

@@ -1,0 +1,40 @@
+.facts {
+  
+  &__inner{
+    @include container();
+  }
+  
+  &__item{
+    display: flex;
+    margin-top: 130px;
+    justify-content: space-between;
+  }
+  
+  &__img{
+    width: 300px;
+    height: 250px;
+  }
+  
+  &__img--lamp{
+    background: url(fire.png) no-repeat 0 0; 
+  }
+  
+  &__img--fire{
+    background: url(fire.png) 936px 552px; 
+  }
+  
+  &__content{
+    width: 554px;
+  }
+  
+  &__title{
+    color: #282828;
+    font: 300 40px / 48.063px 'Dosis';
+    text-transform: uppercase;
+  }
+  
+  &__text{
+    color: #5e5e5e;
+    font: 300 16px / 28px 'Dosis';
+  }
+}

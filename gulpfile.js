@@ -7,7 +7,7 @@
 //7. Очистка папки сборки +
 //8. Подключение библиотек
 //9. Полная сборка проекта+
-//10. Отправка в GH pages (ветку gh-pages репозитория)
+//10. Отправка в GH pages (ветку gh-pages репозитория)+
 
 //Файловая структура проекта:
 //src/ - каталог для размещения рабочий файлов
@@ -45,7 +45,7 @@ const fileinclude = require('gulp-file-include');
 const replace = require('gulp-replace');
 const uglify = require('gulp-uglify');
 const concat = require('gulp-concat');
-
+const ghPages = require('gulp-gh-pages');
 
 
 const pjson = require('./package.json');
@@ -95,7 +95,7 @@ gulp.task('clean', function () {
 //TODO: Что то странное твориться здесь
 // Копирование и оптимизация изображений из папки img
 gulp.task('img', function () { 
-  return gulp.src(dirs.source + '/blocks/**/*.{png,jpg}' ) // только для изменившихся с последнего запуска файлов   
+  return gulp.src(dirs.source + '/blocks/**/*.{png,jpg}',  {since: gulp.lastRun('img')}) // только для изменившихся с последнего запуска файлов   
     .pipe(debug({title: 'img'}))
     .pipe(newer(dirs.build + '/img'))  // оставить в потоке только изменившиеся файлы    
   .pipe(debug({title: 'newer'}))
@@ -179,7 +179,7 @@ gulp.task('server', gulp.series('build', function() {
     server: {
         baseDir: dirs.build
     },
-    tunnel: true,
+    //tunnel: true,
     host: 'localhost',
     port: 9000,
     injectChanges: true,
@@ -206,6 +206,12 @@ gulp.task('server', gulp.series('build', function() {
 gulp.task('default',
   gulp.series('server')
 );
+
+// Отправка в git pages
+gulp.task('deploy', function() {  
+  return gulp.src('./build/**/*')
+    .pipe(ghPages());
+});
 
 function reloader(done) {
   browserSync.reload();
