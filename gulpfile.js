@@ -8,12 +8,13 @@
 //8. Подключение библиотек
 //9. Полная сборка проекта+
 //10. Отправка в GH pages (ветку gh-pages репозитория)+
+//11. PostCSS linter
 
 //Файловая структура проекта:
 //src/ - каталог для размещения рабочий файлов
-//  include/ - повторяющиеся фрагменты html (header, footer и т. п.)
+//  include/ - повторяющиеся фрагменты html (в моих проектах только секция head и секция подключение скриптов bottom)
 //  scss/ - глобальные стили проекта и диспетчер подключений, остальные файлы стилей в папках блоков
-//  js - глобальные скрипты проекта
+//  js - глобальные скрипты проекта и диспетчер подключений js-файлов
 //  blocks/ -каталог для размещения каталогов БЭМ-блоков
 //    block_name/ - каталог для размещения файлов, относящихся к БЭМ-блоку, содержит scss-файлы, js-файлы и картинки
 //build/ -  каталог для размещения скомпилированной верстки
@@ -46,7 +47,10 @@ const replace = require('gulp-replace');
 const uglify = require('gulp-uglify');
 const concat = require('gulp-concat');
 const ghPages = require('gulp-gh-pages');
-
+const rigger = require('gulp-rigger');
+const jshint = require('gulp-jshint');
+const stylish = require('jshint-stylish');
+const streamqueue = require('streamqueue');
 
 const pjson = require('./package.json');
 const dirs = pjson.config.directories;
@@ -91,21 +95,21 @@ gulp.task('clean', function () {
   ]);
 });
 
-//TODO: Оптимизировать, т к при изменении путей файл считается модифицированным
-//TODO: Что то странное твориться здесь
+
+//TODO: Newer не работает
 // Копирование и оптимизация изображений из папки img
 gulp.task('img', function () { 
   return gulp.src(dirs.source + '/blocks/**/*.{png,jpg}',  {since: gulp.lastRun('img')}) // только для изменившихся с последнего запуска файлов   
     .pipe(debug({title: 'img'}))
     .pipe(newer(dirs.build + '/img'))  // оставить в потоке только изменившиеся файлы    
-  .pipe(debug({title: 'newer'}))
+    .pipe(debug({title: 'newer'}))
     .pipe(imagemin({
             progressive: true,
             optimizationLevel: 5,
             //use: [pngquant()],
             interlaced: true
-      }))
-  .pipe(debug({title: 'imgmin'}))
+          }))
+    .pipe(debug({title: 'imgmin'}))
     .pipe(rename(function(path){  // удаляем текущий dirname
       path.dirname = '';
       return path;
@@ -150,19 +154,23 @@ gulp.task('html', function() {
 });
 
 //Конкатенация и минификация js
-gulp.task('js', function () {  
-    return gulp.src(dirs.source + '/blocks/**/*.js')      
-      .pipe(gulpIf(isDev, sourcemaps.init()))
-      .pipe(concat('main.min.js'))
-      .pipe(gulpIf(!isDev, uglify()))
-      .on('error', notify.onError(function(err){
-        return {
-          title: 'Javascript uglify error',
-          message: err.message
-        }
-      }))
-      .pipe(gulpIf(isDev, sourcemaps.write('.')))      
-      .pipe(gulp.dest(dirs.build + '/js'));
+
+gulp.task('js', function () {
+      
+        return gulp.src(dirs.source+'/js/main.js').pipe(rigger()).pipe(jshint()).pipe(jshint.reporter(stylish))
+    
+        .pipe(concat('main.js'))
+        .pipe(gulpIf(isDev, sourcemaps.init()))        
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(uglify())
+        .on('error', notify.onError(function(err){
+          return {
+            title: 'Javascript uglify error',
+            message: err.message
+          }
+        }))
+        .pipe(gulpIf(isDev, sourcemaps.write('.')))        
+        .pipe(gulp.dest(dirs.build+'/js'))
 });
 
 // Сборка 

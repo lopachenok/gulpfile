@@ -28,29 +28,33 @@ if(blockName) {
 
       // Читаем файл диспетчера подключений
       let connectManager = fs.readFileSync(dirs.source + '/scss/style.scss', 'utf8');
-
+      let JSconnectManager = fs.readFileSync(dirs.source + '/js/main.js', 'utf8');
+      
       // Делаем из строк массив, фильтруем массив, оставляя только строки с незакомментированными импортами
       let fileSystem = connectManager.split('\n').filter(function(item) {
         if(/^(\s*)@import/.test(item)) return true;
         else return false;
       });
+      
+      let JSfileSystem = JSconnectManager.split('\n');
 
       // Обходим массив расширений и создаем файлы, если они еще не созданы
       extensions.forEach(function(extention){
 
         let filePath = dirPath + blockName + '.' + extention; // полный путь к создаваемому файлу
         let fileContent = '';                                 // будущий контент файла
-        let LESSfileImport = '';                              // конструкция импорта будущего LESS
+        let SCSSfileImport = '';                              // конструкция импорта будущего SCSS
+        let JSfileImport = '';                                // конструкция импорта будущего JS
         let fileCreateMsg = '';                               // будущее сообщение в консоли при создании файла
 
-        // Если это LESS
+        // Если это SCSS
         if(extention == 'scss') {
-          LESSfileImport = '@import \'' + dirs.source + '/blocks/' + blockName + '/' + blockName + '.scss\';';
-          fileContent = '// Для импорта в диспетчер подключений: ' + LESSfileImport + '\n\n@import \'../../scss/variables.scss\';     // только для удобства обращения к переменным\n\n\n.' + blockName + ' {\n  \n}\n';
-          fileCreateMsg = '[NTH] Для импорта стилей: ' + LESSfileImport;
+          SCSSfileImport = '@import \'' + dirs.source + '/blocks/' + blockName + '/' + blockName + '.scss\';';
+          //fileContent = '// Для импорта в диспетчер подключений: ' + SCSSfileImport + '\n\n@import \'../../scss/variables.scss\';     // только для удобства обращения к переменным\n\n\n.' + blockName + ' {\n  \n}\n';
+          fileCreateMsg = '[NTH] Для импорта стилей: ' + SCSSfileImport;
 
           // Создаем регулярку с импортом
-          let reg = new RegExp(LESSfileImport, '');
+          let reg = new RegExp(SCSSfileImport, '');
 
           // Создадим флаг отсутствия блока среди импортов
           let impotrtExist = false;
@@ -70,9 +74,9 @@ if(blockName) {
               // Если ошибок открытия нет...
               if (!err) {
                 // Запишем в конец файла
-                fs.write(fileHandle, LESSfileImport + '\n', null, 'utf8', function(err, written) {
+                fs.write(fileHandle, SCSSfileImport + '\n', null, 'utf8', function(err, written) {
                   if (!err) {
-                    console.log('[NTH] В диспетчер подключений ('+ dirs.source + '/scss/style.scss) записано: ' + LESSfileImport);
+                    console.log('[NTH] В диспетчер подключений ('+ dirs.source + '/scss/style.scss) записано: ' + SCSSfileImport);
                   } else {
                     console.log('[NTH] ОШИБКА записи в '+ dirs.source + '/scss/style.scss: ' + err);
                   }
@@ -96,6 +100,37 @@ if(blockName) {
         // Если это JS
         else if(extention == 'js') {
           fileContent = '// (function(){\n// код\n// }());\n';
+          JSfileImport = '//= ../blocks/' + blockName + '/'+blockName+'.js';
+          
+          let jsReg = new RegExp(JSfileImport, '');
+          let JSimportExist = false;
+          
+          for (var i = 0, j=JSfileSystem.length; i < j; i++) {
+            if(jsReg.test(JSfileSystem[i])) {
+              JSimportExist = true;
+              break;
+            }
+          }
+          
+          if(!JSimportExist) {
+             fs.open(dirs.source + '/js/main.js', 'a', function(err, fileHandle) {
+              // Если ошибок открытия нет...
+              if (!err) {
+                // Запишем в конец файла
+                fs.write(fileHandle, JSfileImport + '\n', null, 'utf8', function(err, written) {
+                  if (!err) {
+                    console.log('[NTH] В диспетчер подключений ('+ dirs.source + '/js/main.js) записано: ' + JSfileImport);
+                  } else {
+                    console.log('[NTH] ОШИБКА записи в '+ dirs.source + '/js/main.js: ' + err);
+                  }
+                });
+              } else {
+                console.log('[NTH] ОШИБКА открытия '+ dirs.source + '/js/main.js: ' + err);
+              }
+            });
+          }else {
+            console.log('[NTH] Импорт НЕ прописан в '+ dirs.source + '/js/main.js (он там уже есть)');
+          }
         }
 
         // Создаем файл, если он еще не существует
