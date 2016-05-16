@@ -1,27 +1,3 @@
-//1. компиляция scss + autoprefixer +
-//2. browser sync +
-//3. svg sprites +
-//4. копирование и оптимизация остальных изображений +
-//5. сборка html +
-//6. Конкатенация и углификация Javascript +
-//7. Очистка папки сборки +
-//8. Подключение библиотек
-//9. Полная сборка проекта+
-//10. Отправка в GH pages (ветку gh-pages репозитория)+
-//11. PostCSS linter
-
-//Файловая структура проекта:
-//src/ - каталог для размещения рабочий файлов
-//  include/ - повторяющиеся фрагменты html (в моих проектах только секция head и секция подключение скриптов bottom)
-//  scss/ - глобальные стили проекта и диспетчер подключений, остальные файлы стилей в папках блоков
-//  js - глобальные скрипты проекта и диспетчер подключений js-файлов
-//  blocks/ -каталог для размещения каталогов БЭМ-блоков
-//    block_name/ - каталог для размещения файлов, относящихся к БЭМ-блоку, содержит scss-файлы, js-файлы и картинки
-//build/ -  каталог для размещения скомпилированной верстки
-//  js/ - каталог для размещения минифицированных js файлов
-//  css/ - каталог для размещения минифицированных, скомпилированных css файлов
-//  img/ - каталог для размещения обработанных картинок
-
 'use strict';
 
 const gulp = require('gulp');
@@ -50,7 +26,9 @@ const ghPages = require('gulp-gh-pages');
 const rigger = require('gulp-rigger');
 const jshint = require('gulp-jshint');
 const stylish = require('jshint-stylish');
-const streamqueue = require('streamqueue');
+const stylelint = require("stylelint");
+const reporter = require("postcss-reporter");
+
 
 const pjson = require('./package.json');
 const dirs = pjson.config.directories;
@@ -77,10 +55,12 @@ gulp.task('scss', function(){
     }))
     .pipe(postcss([
         autoprefixer({browsers: ['last 2 version']}),
-        mqpacker
+        mqpacker,
+        stylelint(),
+        reporter({ clearMessages: true })
     ]))
     .pipe(gulpIf(!isDev, cleanss()))
-    .pipe(rename('style.min.css'))
+    .pipe(gulpIf(!isDev, rename('style.min.css')))
     .pipe(debug({title: "RENAME:"}))
     .pipe(gulpIf(isDev, sourcemaps.write('.')))
     .pipe(gulp.dest(dirs.build + '/css'))
@@ -96,13 +76,13 @@ gulp.task('clean', function () {
 });
 
 
-//TODO: Newer не работает
+//TODO: Newer не работает, т к меняется путь.
 // Копирование и оптимизация изображений из папки img
 gulp.task('img', function () { 
   return gulp.src(dirs.source + '/blocks/**/*.{png,jpg}',  {since: gulp.lastRun('img')}) // только для изменившихся с последнего запуска файлов   
     .pipe(debug({title: 'img'}))
-    .pipe(newer(dirs.build + '/img'))  // оставить в потоке только изменившиеся файлы    
-    .pipe(debug({title: 'newer'}))
+    .pipe(newer(dirs.build + '/img'))  
+    .pipe(debug({title: 'cached'}))
     .pipe(imagemin({
             progressive: true,
             optimizationLevel: 5,
@@ -114,6 +94,7 @@ gulp.task('img', function () {
       path.dirname = '';
       return path;
     }))
+   
     .pipe(gulp.dest(dirs.build + '/img'));
 });
 
@@ -123,15 +104,15 @@ gulp.task('svgsprite', function() {
       .pipe(svgSprite({
         mode: {
           css: {
-            dest:       '.', // where to put style && sprite, default: 'css'
+            dest:       '.', 
             bust:       false,
-            sprite:     'sprite.svg', // filename for sprite relative to dest
+            sprite:     'sprite.svg', 
             layout:     'vertical',
-            prefix:     '.', // .svg-
+            prefix:     '.', 
             dimensions: true,
             render:     {
               scss: {
-                dest: 'sprite.scss'  // filename for .styl relative to dest^
+                dest: 'sprite.scss'  
               }
             }
           }
@@ -155,22 +136,23 @@ gulp.task('html', function() {
 
 //Конкатенация и минификация js
 
-gulp.task('js', function () {
-      
-        return gulp.src(dirs.source+'/js/main.js').pipe(rigger()).pipe(jshint()).pipe(jshint.reporter(stylish))
-    
-        .pipe(concat('main.js'))
-        .pipe(gulpIf(isDev, sourcemaps.init()))        
-        .pipe(rename({ suffix: '.min' }))
-        .pipe(uglify())
-        .on('error', notify.onError(function(err){
-          return {
-            title: 'Javascript uglify error',
-            message: err.message
-          }
-        }))
-        .pipe(gulpIf(isDev, sourcemaps.write('.')))        
-        .pipe(gulp.dest(dirs.build+'/js'))
+gulp.task('js', function () {      
+  return gulp.src(dirs.source+'/js/main.js')
+    .pipe(rigger())
+    .pipe(jshint())
+    .pipe(jshint.reporter(stylish))    
+    .pipe(concat('main.js'))
+    .pipe(gulpIf(isDev, sourcemaps.init()))        
+    .pipe(gulpIf(!isDev, rename({ suffix: '.min' })))
+    .pipe(gulpIf(!isDev, uglify()))
+    .on('error', notify.onError(function(err){
+        return {
+          title: 'Javascript uglify error',
+          message: err.message
+        }
+     }))
+     .pipe(gulpIf(isDev, sourcemaps.write('.')))        
+     .pipe(gulp.dest(dirs.build+'/js'))
 });
 
 // Сборка 
