@@ -54,10 +54,11 @@ gulp.task('scss', function(){
       prepend: '../img/',      
     }))
     .pipe(postcss([
-        autoprefixer({browsers: ['last 2 version']}),
-        mqpacker,
         stylelint(),
-        reporter({ clearMessages: true })
+        reporter({ clearMessages: true }),
+        autoprefixer({browsers: ['last 2 version']}),
+        mqpacker
+        
     ]))
     .pipe(gulpIf(!isDev, cleanss()))
     .pipe(gulpIf(!isDev, rename('style.min.css')))
