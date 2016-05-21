@@ -44,16 +44,16 @@ gulp.task('css', function(){
     .pipe(gulpIf(isDev, sourcemaps.init()))    
     .pipe(postcss([
         precss(),
-        function(css) {			
-			css.walkDecls(/^background/, function(decl) {
-				if(decl.value.indexOf('url') !== -1) {
-                  const urlBefore = '../img/';
-                  let imgPath = decl.value.match(/\((.)*\)/gi)[0];
-                  imgPath = imgPath.replace(/['"\(\)\s]/gi, '');
-                  decl.value = 'url('+urlBefore + imgPath+')';                 
-                }
-			});
-		},
+        function (css) {
+          css.walkDecls(/^background/, function (decl) {
+            if (decl.value.indexOf('url') !== -1) {
+              const urlBefore = '../img/';
+              let imgPath = decl.value.match(/\((.)*\)/gi)[0];
+              imgPath = imgPath.replace(/['"\(\)\s]/gi, '');
+              decl.value = 'url(' + urlBefore + imgPath + ')';
+            }
+          });
+        },
         stylelint(),
         reporter({ clearMessages: true }),
         autoprefixer({browsers: ['last 2 version']}),
