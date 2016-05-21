@@ -1,23 +1,23 @@
 'use strict';
 
 const gulp = require('gulp');
-const sass = require('gulp-sass');
+//const sass = require('gulp-sass');
 const debug = require('gulp-debug');
 const notify = require('gulp-notify');
 const gulpIf = require('gulp-if');
 const postcss = require('gulp-postcss');
+const precss = require('precss');
 const autoprefixer = require('autoprefixer');
-const browserSync = require('browser-sync').create();
+const cssnano = require('cssnano');
 const mqpacker = require('css-mqpacker');
+const browserSync = require('browser-sync').create();
 const sourcemaps = require('gulp-sourcemaps');
-const cleanss = require('gulp-cleancss');
 const rename = require('gulp-rename');
 const del = require('del');
 const newer = require('gulp-newer');
 const imagemin = require('gulp-imagemin');
 const pngquant = require('imagemin-pngquant');
 const svgSprite = require('gulp-svg-sprite');
-const urlAdjuster = require('gulp-css-url-adjuster');
 const fileinclude = require('gulp-file-include');
 const replace = require('gulp-replace');
 const uglify = require('gulp-uglify');
@@ -37,32 +37,36 @@ const ghPagesUrl = pjson.config.ghPages;
 // Запуск `NODE_ENV=production gulp [задача]` приведет к сборке без sourcemaps
 const isDev = !process.env.NODE_ENV || process.env.NODE_ENV == 'dev';
 
-//TODO: некорректно работает sourcemaps
-//Компиляция SCSS
-gulp.task('scss', function(){
-  return gulp.src(dirs.source + '/scss/style.scss')
-    .pipe(gulpIf(isDev, sourcemaps.init()))
-    .pipe(debug({title: "SCSS:"}))
-    .pipe(sass(gulpIf(!isDev, {outputStyle: 'compressed'})))
+
+//Компиляция CSS
+gulp.task('css', function(){
+  return gulp.src(dirs.source + '/css/style.css')
+    .pipe(gulpIf(isDev, sourcemaps.init()))    
+    .pipe(postcss([
+        precss(),
+        function(css) {			
+			css.walkDecls(/^background/, function(decl) {
+				if(decl.value.indexOf('url') !== -1) {
+                  const urlBefore = '../img/';
+                  let imgPath = decl.value.match(/\((.)*\)/gi)[0];
+                  imgPath = imgPath.replace(/['"\(\)\s]/gi, '');
+                  decl.value = 'url('+urlBefore + imgPath+')';                 
+                }
+			});
+		},
+        stylelint(),
+        reporter({ clearMessages: true }),
+        autoprefixer({browsers: ['last 2 version']}),
+        mqpacker,
+        cssnano        
+    ]))  
     .on('error', notify.onError(function(err){
       return {
         title: 'Styles compilation error',
         message: err.message
       }
     }))
-    .pipe(urlAdjuster({
-      prepend: '../img/',      
-    }))
-    .pipe(postcss([
-        stylelint(),
-        reporter({ clearMessages: true }),
-        autoprefixer({browsers: ['last 2 version']}),
-        mqpacker
-        
-    ]))
-    .pipe(gulpIf(!isDev, cleanss()))
-    .pipe(gulpIf(!isDev, rename('style.min.css')))
-    .pipe(debug({title: "RENAME:"}))
+   .pipe(rename('style.min.css'))
     .pipe(gulpIf(isDev, sourcemaps.write('.')))
     .pipe(gulp.dest(dirs.build + '/css'))
     .pipe(browserSync.stream());
@@ -112,15 +116,15 @@ gulp.task('svgsprite', function() {
             prefix:     '.', 
             dimensions: true,
             render:     {
-              scss: {
-                dest: 'sprite.scss'  
+              css: {
+                dest: 'sprite.css'  
               }
             }
           }
         }
       }))
       .pipe(debug({title: 'styles:svg'}))
-      .pipe(gulpIf('*.scss', gulp.dest(dirs.source + '/scss'), gulp.dest(dirs.build + '/img')));
+      .pipe(gulpIf('*.css', gulp.dest(dirs.source + '/css'), gulp.dest(dirs.build + '/img')));
 });
 
 // Сборка HTML
@@ -160,7 +164,7 @@ gulp.task('js', function () {
 gulp.task('build', gulp.series(
   'clean',
   'svgsprite',
-  gulp.parallel('scss', 'img', 'js'),
+  gulp.parallel('css', 'img', 'js'),
   'html'
 ));
 
@@ -182,9 +186,9 @@ gulp.task('server', gulp.series('build', function() {
     dirs.source + '/blocks/**/*.html',
   ], gulp.series('html', reloader));
   gulp.watch([
-    dirs.source + '/scss/*.scss', 
-    dirs.source + '/blocks/**/*.scss'
-  ], gulp.series('scss'));
+    dirs.source + '/css/*.css', 
+    dirs.source + '/blocks/**/*.css'
+  ], gulp.series('css'));
   gulp.watch(dirs.source + '/blocks/**/*.{png,jpg}', gulp.series('img', reloader));
   gulp.watch([
     dirs.source + '/blocks/**/*.js',

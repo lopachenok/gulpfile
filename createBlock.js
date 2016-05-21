@@ -8,7 +8,7 @@ const dirs = pjson.config.directories;   // отдельно имеем объе
 const mkdirp = require('mkdirp');        // зависимость
 
 let blockName = process.argv[2];          // получим имя блока
-let defaultExtensions = ['scss']; // расширения по умолчанию
+let defaultExtensions = ['css']; // расширения по умолчанию
 let extensions = uniqueArray(defaultExtensions.concat(process.argv.slice(3)));  // добавим введенные при вызове расширения (если есть)
 
 // Если есть имя блока
@@ -27,7 +27,7 @@ if(blockName) {
       console.log('[NTH] Создание папки ' + dirPath + ' (создана, если ещё не существует)');
 
       // Читаем файл диспетчера подключений
-      let connectManager = fs.readFileSync(dirs.source + '/scss/style.scss', 'utf8');
+      let connectManager = fs.readFileSync(dirs.source + '/css/style.css', 'utf8');
       let JSconnectManager = fs.readFileSync(dirs.source + '/js/main.js', 'utf8');
       
       // Делаем из строк массив, фильтруем массив, оставляя только строки с незакомментированными импортами
@@ -43,18 +43,18 @@ if(blockName) {
 
         let filePath = dirPath + blockName + '.' + extention; // полный путь к создаваемому файлу
         let fileContent = '';                                 // будущий контент файла
-        let SCSSfileImport = '';                              // конструкция импорта будущего SCSS
+        let CSSfileImport = '';                              // конструкция импорта будущего CSS
         let JSfileImport = '';                                // конструкция импорта будущего JS
         let fileCreateMsg = '';                               // будущее сообщение в консоли при создании файла
 
-        // Если это SCSS
-        if(extention == 'scss') {
-          SCSSfileImport = '@import \'' + dirs.source + '/blocks/' + blockName + '/' + blockName + '.scss\';';
-          //fileContent = '// Для импорта в диспетчер подключений: ' + SCSSfileImport + '\n\n@import \'../../scss/variables.scss\';     // только для удобства обращения к переменным\n\n\n.' + blockName + ' {\n  \n}\n';
-          fileCreateMsg = '[NTH] Для импорта стилей: ' + SCSSfileImport;
+        // Если это CSS
+        if(extention == 'css') {
+          CSSfileImport = '@import \'' + dirs.source + '/blocks/' + blockName + '/' + blockName + '.css\';';
+          //fileContent = '// Для импорта в диспетчер подключений: ' + CSSfileImport + '\n\n@import \'../../css/variables.css\';     // только для удобства обращения к переменным\n\n\n.' + blockName + ' {\n  \n}\n';
+          fileCreateMsg = '[NTH] Для импорта стилей: ' + CSSfileImport;
 
           // Создаем регулярку с импортом
-          let reg = new RegExp(SCSSfileImport, '');
+          let reg = new RegExp(CSSfileImport, '');
 
           // Создадим флаг отсутствия блока среди импортов
           let impotrtExist = false;
@@ -70,24 +70,24 @@ if(blockName) {
           // Если флаг наличия импорта по-прежнему опущен, допишем импорт
           if(!impotrtExist) {
             // Открываем файл
-            fs.open(dirs.source + '/scss/style.scss', 'a', function(err, fileHandle) {
+            fs.open(dirs.source + '/css/style.css', 'a', function(err, fileHandle) {
               // Если ошибок открытия нет...
               if (!err) {
                 // Запишем в конец файла
-                fs.write(fileHandle, SCSSfileImport + '\n', null, 'utf8', function(err, written) {
+                fs.write(fileHandle, CSSfileImport + '\n', null, 'utf8', function(err, written) {
                   if (!err) {
-                    console.log('[NTH] В диспетчер подключений ('+ dirs.source + '/scss/style.scss) записано: ' + SCSSfileImport);
+                    console.log('[NTH] В диспетчер подключений ('+ dirs.source + '/css/style.css) записано: ' + CSSfileImport);
                   } else {
-                    console.log('[NTH] ОШИБКА записи в '+ dirs.source + '/scss/style.scss: ' + err);
+                    console.log('[NTH] ОШИБКА записи в '+ dirs.source + '/css/style.css: ' + err);
                   }
                 });
               } else {
-                console.log('[NTH] ОШИБКА открытия '+ dirs.source + '/scss/style.scss: ' + err);
+                console.log('[NTH] ОШИБКА открытия '+ dirs.source + '/css/style.css: ' + err);
               }
             });
           }
           else {
-            console.log('[NTH] Импорт НЕ прописан в '+ dirs.source + '/scss/style.scss (он там уже есть)');
+            console.log('[NTH] Импорт НЕ прописан в '+ dirs.source + '/css/style.css (он там уже есть)');
           }
         }
 
