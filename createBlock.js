@@ -49,7 +49,7 @@ if(blockName) {
 
         // Если это CSS
         if(extention == 'css') {
-          CSSfileImport = '@import \'' + dirs.source + '/blocks/' + blockName + '/' + blockName + '.css\';';
+          CSSfileImport = '@import \'../../' + dirs.source + '/blocks/' + blockName + '/' + blockName + '.css\';';
           //fileContent = '// Для импорта в диспетчер подключений: ' + CSSfileImport + '\n\n@import \'../../css/variables.css\';     // только для удобства обращения к переменным\n\n\n.' + blockName + ' {\n  \n}\n';
           fileCreateMsg = '[NTH] Для импорта стилей: ' + CSSfileImport;
 

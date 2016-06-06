@@ -1,3 +1,1 @@
-
-
-
+//= ../blocks/block/block.js
