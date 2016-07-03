@@ -28,6 +28,7 @@ const jshint = require('gulp-jshint');
 const stylish = require('jshint-stylish');
 const stylelint = require("stylelint");
 const reporter = require("postcss-reporter");
+const streamqueue = require('streamqueue');
 
 
 const pjson = require('./package.json');
@@ -40,33 +41,46 @@ const isDev = !process.env.NODE_ENV || process.env.NODE_ENV == 'dev';
 
 //Компиляция CSS
 gulp.task('css', function(){
-  return gulp.src(dirs.source + '/css/style.css')
-    .pipe(gulpIf(isDev, sourcemaps.init()))    
-    .pipe(postcss([
-        precss(),
-        function (css) {
-          css.walkDecls(/^background/, function (decl) {
-            if (decl.value.indexOf('url') !== -1) {
-              const urlBefore = '../img/';
-              let imgPath = decl.value.match(/\((.)*\)/gi)[0];
-              imgPath = imgPath.replace(/['"\(\)\s]/gi, '');
-              decl.value = 'url(' + urlBefore + imgPath + ')';
-            }
-          });
-        },
-        stylelint(),
-        reporter({ clearMessages: true }),
-        autoprefixer({browsers: ['last 2 version']}),
-        mqpacker,
-        cssnano        
-    ]))  
+  return streamqueue(
+        { objectMode: true },
+        gulp.src(dirs.source + '/css/style.css')
+          .pipe(gulpIf(isDev, sourcemaps.init()))    
+          .pipe(postcss([
+              precss(),
+              function (css) {
+                css.walkDecls(/^background/, function (decl) {
+                  if (decl.value.indexOf('url') !== -1) {
+                    const urlBefore = '../img/';
+                    let imgPath = decl.value.match(/\((.)*\)/gi)[0];
+                    imgPath = imgPath.replace(/['"\(\)\s]/gi, '');
+                    decl.value = 'url(' + urlBefore + imgPath + ')';
+                  }
+                });
+              },
+              stylelint(),
+              reporter({ clearMessages: true }),
+              autoprefixer({browsers: ['last 2 version']}),
+              mqpacker,
+              cssnano        
+          ]))
+          .pipe(rename('style.min.css')),
+        gulp.src(dirs.source + '/css/vendor.css') 
+          .pipe(postcss([
+              precss(),        
+              autoprefixer({browsers: ['last 2 version']}),
+              mqpacker,
+              cssnano        
+          ]))
+          .pipe(rename('vendor.min.css'))
+        )  
+    
     .on('error', notify.onError(function(err){
       return {
         title: 'Styles compilation error',
         message: err.message
       }
     }))
-   .pipe(rename('style.min.css'))
+   
     .pipe(gulpIf(isDev, sourcemaps.write('.')))
     .pipe(gulp.dest(dirs.build + '/css'))
     .pipe(browserSync.stream());
@@ -142,11 +156,16 @@ gulp.task('html', function() {
 //Конкатенация и минификация js
 
 gulp.task('js', function () {      
-  return gulp.src(dirs.source+'/js/main.js')
-    .pipe(rigger())
-    .pipe(jshint())
-    .pipe(jshint.reporter(stylish))    
-    .pipe(concat('main.js'))
+  return streamqueue(
+        { objectMode: true },
+        gulp.src(dirs.source+'/js/main.js')
+          .pipe(rigger())
+          .pipe(jshint())
+          .pipe(jshint.reporter(stylish)),
+        gulp.src(dirs.source+'/js/vendor.js')
+          .pipe(rigger())
+      )  
+    //.pipe(concat('main.js'))
     .pipe(gulpIf(isDev, sourcemaps.init()))        
     .pipe(gulpIf(!isDev, rename({ suffix: '.min' })))
     .pipe(gulpIf(!isDev, uglify()))

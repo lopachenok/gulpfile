@@ -1,0 +1,2 @@
+//= ../blocks/block/block.js
+
