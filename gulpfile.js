@@ -51,16 +51,16 @@ gulp.task('css', function(){
                 css.walkDecls(/^background/, function (decl) {
                   if (decl.value.indexOf('url') !== -1) {
                     const urlBefore = '../img/';
-                    let imgPath = decl.value.match(/\((.)*\)/gi)[0];
-                    imgPath = imgPath.replace(/['"\(\)\s]/gi, '');
-                    decl.value = 'url(' + urlBefore + imgPath + ')';
+                    let imgPath = decl.value.search(/url\((.)*\)/gi);  
+                    let substrStrat = decl.value.slice(0, imgPath+4);
+                    let substrEnd = decl.value.slice(imgPath+4, decl.value.length);
+                    decl.value = substrStrat + urlBefore + substrEnd;
                   }
                 });
               },
               stylelint(),
               reporter({ clearMessages: true }),
               autoprefixer({browsers: ['last 2 version']}),
-              mqpacker,
               cssnano        
           ]))
           .pipe(rename('style.min.css')),
