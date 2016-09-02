@@ -1,5 +1,5 @@
 {
-  "name": "gulp",
+  "name": "startFile",
   "version": "1.0.0",
   "description": "Start gulpfile",
   "main": "index.js",
@@ -15,7 +15,7 @@
     "cssnano": "^3.6.2",
     "del": "^2.2.0",
     "fs": "0.0.2",
-    "gulp": "gulpjs/gulp#4.0",
+    "gulp": "github:gulpjs/gulp#4.0",
     "gulp-concat": "^2.6.0",
     "gulp-debug": "^2.1.2",
     "gulp-file-include": "^0.13.7",
@@ -51,7 +51,7 @@
       "build": "./build"
     }
   },
- "stylelint": {
+  "stylelint": {
     "rules": {
       "at-rule-empty-line-before": "always",
       "at-rule-name-case": "lower",
